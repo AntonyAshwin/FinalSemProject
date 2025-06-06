@@ -17,6 +17,7 @@ const emptyMarketData: MarketDataInput = {
 };
 
 const PREFILL_MARKET_DATA = process.env.REACT_APP_PREFILL_MARKET_DATA === 'true';
+const MARKET_DATA_PROPERTIES = ["ASK", "MID", "BID", "CLOSE"];
 
 const getRandomInstrumentCode = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -25,6 +26,25 @@ const getRandomInstrumentCode = () => {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
+};
+
+const validate = (data: MarketDataInput) => {
+    const errors: { [key: string]: string } = {};
+    if (!data.providerCode) errors.providerCode = 'Provider Code is required.';
+    else if (data.providerCode.length > 15) errors.providerCode = 'Provider Code must be at most 15 characters.';
+    if (!data.instrumentCode) errors.instrumentCode = 'Instrument Code is required.';
+    else if (data.instrumentCode.length > 30) errors.instrumentCode = 'Instrument Code must be at most 30 characters.';
+    if (!data.marketDataCategory) errors.marketDataCategory = 'Market Data Category is required.';
+    else if (data.marketDataCategory.length > 15) errors.marketDataCategory = 'Market Data Category must be at most 15 characters.';
+    if (!data.marketDataProperty || !MARKET_DATA_PROPERTIES.includes(data.marketDataProperty)) errors.marketDataProperty = 'Market Data Property must be one of ASK, MID, BID, CLOSE.';
+    if (!data.marketDataSource) errors.marketDataSource = 'Market Data Source is required.';
+    else if (data.marketDataSource.length > 15) errors.marketDataSource = 'Market Data Source must be at most 15 characters.';
+    if (data.instrumentCodeDescription && data.instrumentCodeDescription.length > 1024) errors.instrumentCodeDescription = 'Instrument Code Description must be at most 1024 characters.';
+    if (!data.key1) errors.key1 = 'Key 1 is required.';
+    else if (data.key1.length > 20) errors.key1 = 'Key 1 must be at most 20 characters.';
+    if (!data.key2) errors.key2 = 'Key 2 is required.';
+    else if (data.key2.length > 20) errors.key2 = 'Key 2 must be at most 20 characters.';
+    return errors;
 };
 
 const MarketDataForm: React.FC = () => {
@@ -45,6 +65,7 @@ const MarketDataForm: React.FC = () => {
             }
             : { ...emptyMarketData }
     ]);
+    const [errorsList, setErrorsList] = useState<{ [key: string]: string }[]>([{}]);
 
     const handleChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -52,36 +73,47 @@ const MarketDataForm: React.FC = () => {
             i === index ? { ...item, [name]: value } : item
         );
         setMarketDataList(updatedList);
+        // Validate on change
+        const newErrors = errorsList.slice();
+        newErrors[index] = validate(updatedList[index]);
+        setErrorsList(newErrors);
     };
 
     const handleAddCard = () => {
-        setMarketDataList([
-            ...marketDataList,
-            PREFILL_MARKET_DATA
-                ? {
-                    providerCode: 'SAPTHR',
-                    instrumentCode: getRandomInstrumentCode(),
-                    marketDataProperty: 'CLOSE',
-                    marketDataCategory: '01',
-                    marketDataSource: 'ST',
-                    instrumentCodeDescription: 'Test Rics',
-                    key1: 'INR',
-                    key2: 'PJK',
-                    fromFactor: 1,
-                    toFactor: 1,
-                    termInDays: '1',
-                }
-                : { ...emptyMarketData }
-        ]);
+        const newCard = PREFILL_MARKET_DATA
+            ? {
+                providerCode: 'SAPTHR',
+                instrumentCode: getRandomInstrumentCode(),
+                marketDataProperty: 'CLOSE',
+                marketDataCategory: '01',
+                marketDataSource: 'ST',
+                instrumentCodeDescription: 'Test Rics',
+                key1: 'INR',
+                key2: 'PJK',
+                fromFactor: 1,
+                toFactor: 1,
+                termInDays: '1',
+            }
+            : { ...emptyMarketData };
+        setMarketDataList([...marketDataList, newCard]);
+        setErrorsList([...errorsList, {}]);
     };
 
     const handleRemoveCard = (index: number) => {
         if (marketDataList.length === 1) return;
         setMarketDataList(marketDataList.filter((_, i) => i !== index));
+        setErrorsList(errorsList.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // Validate all cards before submit
+        const allErrors = marketDataList.map(validate);
+        setErrorsList(allErrors);
+        if (allErrors.some(err => Object.keys(err).length > 0)) {
+            alert('Please fix validation errors before submitting.');
+            return;
+        }
         try {
             await postMarketData(marketDataList); // send all cards as array
             alert('Market data submitted successfully!');
@@ -111,21 +143,30 @@ const MarketDataForm: React.FC = () => {
                     }}>
                         <button type="button" onClick={() => handleRemoveCard(idx)} style={{ position: 'absolute', top: 8, right: 8, background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer' }} disabled={marketDataList.length === 1}>×</button>
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>Provider Code</label>
-                        <input type="text" name="providerCode" value={formData.providerCode} onChange={e => handleChange(idx, e)} placeholder="Provider Code" required style={{ marginBottom: 8 }} />
+                        <input type="text" name="providerCode" value={formData.providerCode} onChange={e => handleChange(idx, e)} placeholder="Provider Code" required style={{ marginBottom: 8, borderColor: errorsList[idx]?.providerCode ? 'red' : undefined }} />
+                        {errorsList[idx]?.providerCode && <span style={{ color: 'red', fontSize: 12 }}>{errorsList[idx].providerCode}</span>}
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>Instrument Code</label>
-                        <input type="text" name="instrumentCode" value={formData.instrumentCode} onChange={e => handleChange(idx, e)} placeholder="Instrument Code" required style={{ marginBottom: 8 }} />
+                        <input type="text" name="instrumentCode" value={formData.instrumentCode} onChange={e => handleChange(idx, e)} placeholder="Instrument Code" required style={{ marginBottom: 8, borderColor: errorsList[idx]?.instrumentCode ? 'red' : undefined }} />
+                        {errorsList[idx]?.instrumentCode && <span style={{ color: 'red', fontSize: 12 }}>{errorsList[idx].instrumentCode}</span>}
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>Market Data Property</label>
-                        <input type="text" name="marketDataProperty" value={formData.marketDataProperty} onChange={e => handleChange(idx, e)} placeholder="Market Data Property" required style={{ marginBottom: 8 }} />
+                        <select name="marketDataProperty" value={formData.marketDataProperty} onChange={e => handleChange(idx, e)} required style={{ marginBottom: 8, borderColor: errorsList[idx]?.marketDataProperty ? 'red' : undefined }}>
+                            {MARKET_DATA_PROPERTIES.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                        </select>
+                        {errorsList[idx]?.marketDataProperty && <span style={{ color: 'red', fontSize: 12 }}>{errorsList[idx].marketDataProperty}</span>}
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>Market Data Category</label>
-                        <input type="text" name="marketDataCategory" value={formData.marketDataCategory} onChange={e => handleChange(idx, e)} placeholder="Market Data Category" required style={{ marginBottom: 8 }} />
+                        <input type="text" name="marketDataCategory" value={formData.marketDataCategory} onChange={e => handleChange(idx, e)} placeholder="Market Data Category" required style={{ marginBottom: 8, borderColor: errorsList[idx]?.marketDataCategory ? 'red' : undefined }} />
+                        {errorsList[idx]?.marketDataCategory && <span style={{ color: 'red', fontSize: 12 }}>{errorsList[idx].marketDataCategory}</span>}
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>Market Data Source</label>
-                        <input type="text" name="marketDataSource" value={formData.marketDataSource} onChange={e => handleChange(idx, e)} placeholder="Market Data Source" required style={{ marginBottom: 8 }} />
+                        <input type="text" name="marketDataSource" value={formData.marketDataSource} onChange={e => handleChange(idx, e)} placeholder="Market Data Source" required style={{ marginBottom: 8, borderColor: errorsList[idx]?.marketDataSource ? 'red' : undefined }} />
+                        {errorsList[idx]?.marketDataSource && <span style={{ color: 'red', fontSize: 12 }}>{errorsList[idx].marketDataSource}</span>}
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>Instrument Code Description</label>
                         <input type="text" name="instrumentCodeDescription" value={formData.instrumentCodeDescription} onChange={e => handleChange(idx, e)} placeholder="Instrument Code Description" required style={{ marginBottom: 8 }} />
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>Key 1</label>
-                        <input type="text" name="key1" value={formData.key1} onChange={e => handleChange(idx, e)} placeholder="Key 1" required style={{ marginBottom: 8 }} />
+                        <input type="text" name="key1" value={formData.key1} onChange={e => handleChange(idx, e)} placeholder="Key 1" required style={{ marginBottom: 8, borderColor: errorsList[idx]?.key1 ? 'red' : undefined }} />
+                        {errorsList[idx]?.key1 && <span style={{ color: 'red', fontSize: 12 }}>{errorsList[idx].key1}</span>}
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>Key 2</label>
-                        <input type="text" name="key2" value={formData.key2} onChange={e => handleChange(idx, e)} placeholder="Key 2" required style={{ marginBottom: 8 }} />
+                        <input type="text" name="key2" value={formData.key2} onChange={e => handleChange(idx, e)} placeholder="Key 2" required style={{ marginBottom: 8, borderColor: errorsList[idx]?.key2 ? 'red' : undefined }} />
+                        {errorsList[idx]?.key2 && <span style={{ color: 'red', fontSize: 12 }}>{errorsList[idx].key2}</span>}
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>From Factor</label>
                         <input type="number" name="fromFactor" value={formData.fromFactor} onChange={e => handleChange(idx, e)} placeholder="From Factor" required style={{ marginBottom: 8 }} />
                         <label style={{ fontWeight: 500, marginBottom: 2 }}>To Factor</label>
