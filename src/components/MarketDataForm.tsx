@@ -16,8 +16,35 @@ const emptyMarketData: MarketDataInput = {
     termInDays: '1',
 };
 
+const PREFILL_MARKET_DATA = process.env.REACT_APP_PREFILL_MARKET_DATA === 'true';
+
+const getRandomInstrumentCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+};
+
 const MarketDataForm: React.FC = () => {
-    const [marketDataList, setMarketDataList] = useState<MarketDataInput[]>([ { ...emptyMarketData } ]);
+    const [marketDataList, setMarketDataList] = useState<MarketDataInput[]>([
+        PREFILL_MARKET_DATA
+            ? {
+                providerCode: 'SAPTHR',
+                instrumentCode: getRandomInstrumentCode(),
+                marketDataProperty: 'CLOSE',
+                marketDataCategory: '01',
+                marketDataSource: 'ST',
+                instrumentCodeDescription: 'Test Rics',
+                key1: 'INR',
+                key2: 'PJK',
+                fromFactor: 1,
+                toFactor: 1,
+                termInDays: '1',
+            }
+            : { ...emptyMarketData }
+    ]);
 
     const handleChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -28,7 +55,24 @@ const MarketDataForm: React.FC = () => {
     };
 
     const handleAddCard = () => {
-        setMarketDataList([...marketDataList, { ...emptyMarketData }]);
+        setMarketDataList([
+            ...marketDataList,
+            PREFILL_MARKET_DATA
+                ? {
+                    providerCode: 'SAPTHR',
+                    instrumentCode: getRandomInstrumentCode(),
+                    marketDataProperty: 'CLOSE',
+                    marketDataCategory: '01',
+                    marketDataSource: 'ST',
+                    instrumentCodeDescription: 'Test Rics',
+                    key1: 'INR',
+                    key2: 'PJK',
+                    fromFactor: 1,
+                    toFactor: 1,
+                    termInDays: '1',
+                }
+                : { ...emptyMarketData }
+        ]);
     };
 
     const handleRemoveCard = (index: number) => {
