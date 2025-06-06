@@ -4,10 +4,11 @@ import { MarketDataInput } from '../types/MarketDataInput';
 const API_URL = '/instrumentCode';
 const ACCESS_TOKEN = process.env.REACT_APP_ACCESS_TOKEN || '';
 
-export const postMarketData = async (data: MarketDataInput) => {
+export const postMarketData = async (data: MarketDataInput | MarketDataInput[]) => {
     try {
-        // Send data as an array
-        const response = await axios.post(API_URL, [data], {
+        // Always send as array
+        const payload = Array.isArray(data) ? data : [data];
+        const response = await axios.post(API_URL, payload, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${ACCESS_TOKEN}`
