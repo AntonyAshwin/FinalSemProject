@@ -125,7 +125,19 @@ const MarketDataForm: React.FC = () => {
 
     return (
         <form onSubmit={handleSubmit}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+            <h2 style={{
+                textAlign: 'center',
+                fontWeight: 700,
+                fontSize: 28,
+                margin: '24px 0 32px 0',
+                letterSpacing: 1,
+                color: '#1976d2',
+                fontFamily: 'Segoe UI, Arial, sans-serif',
+                textShadow: '0 2px 8px #e3e3e3'
+            }}>
+                Instrument Code Synchronization Form
+            </h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start' }}>
                 {marketDataList.map((formData, idx) => (
                     <div key={idx} style={{
                         border: '1px solid #ccc',
@@ -175,8 +187,26 @@ const MarketDataForm: React.FC = () => {
                         <input type="text" name="termInDays" value={formData.termInDays} onChange={e => handleChange(idx, e)} placeholder="Term In Days" required style={{ marginBottom: 8 }} />
                     </div>
                 ))}
+                {/* Add Card Button as a green circle with + icon */}
+                <button type="button" onClick={handleAddCard} aria-label="Add Card" style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: '50%',
+                    background: '#4caf50',
+                    color: '#fff',
+                    border: 'none',
+                    fontSize: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginTop: 16,
+                    marginBottom: 16,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px #eee',
+                }}>
+                    +
+                </button>
             </div>
-            <button type="button" onClick={handleAddCard} style={{ margin: '16px 0', background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer' }}>Add Card</button>
             <button type="submit">Submit</button>
         </form>
     );
