@@ -110,16 +110,27 @@ const MarketDataForm: React.FC = () => {
                         alignItems: 'stretch',
                     }}>
                         <button type="button" onClick={() => handleRemoveCard(idx)} style={{ position: 'absolute', top: 8, right: 8, background: '#f44336', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer' }} disabled={marketDataList.length === 1}>×</button>
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>Provider Code</label>
                         <input type="text" name="providerCode" value={formData.providerCode} onChange={e => handleChange(idx, e)} placeholder="Provider Code" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>Instrument Code</label>
                         <input type="text" name="instrumentCode" value={formData.instrumentCode} onChange={e => handleChange(idx, e)} placeholder="Instrument Code" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>Market Data Property</label>
                         <input type="text" name="marketDataProperty" value={formData.marketDataProperty} onChange={e => handleChange(idx, e)} placeholder="Market Data Property" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>Market Data Category</label>
                         <input type="text" name="marketDataCategory" value={formData.marketDataCategory} onChange={e => handleChange(idx, e)} placeholder="Market Data Category" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>Market Data Source</label>
                         <input type="text" name="marketDataSource" value={formData.marketDataSource} onChange={e => handleChange(idx, e)} placeholder="Market Data Source" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>Instrument Code Description</label>
                         <input type="text" name="instrumentCodeDescription" value={formData.instrumentCodeDescription} onChange={e => handleChange(idx, e)} placeholder="Instrument Code Description" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>Key 1</label>
                         <input type="text" name="key1" value={formData.key1} onChange={e => handleChange(idx, e)} placeholder="Key 1" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>Key 2</label>
                         <input type="text" name="key2" value={formData.key2} onChange={e => handleChange(idx, e)} placeholder="Key 2" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>From Factor</label>
                         <input type="number" name="fromFactor" value={formData.fromFactor} onChange={e => handleChange(idx, e)} placeholder="From Factor" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>To Factor</label>
                         <input type="number" name="toFactor" value={formData.toFactor} onChange={e => handleChange(idx, e)} placeholder="To Factor" required style={{ marginBottom: 8 }} />
+                        <label style={{ fontWeight: 500, marginBottom: 2 }}>Term In Days</label>
                         <input type="text" name="termInDays" value={formData.termInDays} onChange={e => handleChange(idx, e)} placeholder="Term In Days" required style={{ marginBottom: 8 }} />
                     </div>
                 ))}
