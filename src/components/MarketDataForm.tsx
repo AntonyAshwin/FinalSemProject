@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { postMarketData } from '../api/postMarketData';
 import { MarketDataInput } from '../types/MarketDataInput';
 
@@ -66,6 +66,22 @@ const MarketDataForm: React.FC = () => {
             : { ...emptyMarketData }
     ]);
     const [errorsList, setErrorsList] = useState<{ [key: string]: string }[]>([{}]);
+    const [success, setSuccess] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [successFade, setSuccessFade] = useState(true);
+
+    useEffect(() => {
+        if (success) {
+            setShowSuccess(true);
+            setSuccessFade(true);
+            const fadeTimer = setTimeout(() => setSuccessFade(false), 2000); // Start fade after 2s
+            const hideTimer = setTimeout(() => setShowSuccess(false), 2500); // Hide after fade
+            return () => {
+                clearTimeout(fadeTimer);
+                clearTimeout(hideTimer);
+            };
+        }
+    }, [success]);
 
     const handleChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -111,13 +127,15 @@ const MarketDataForm: React.FC = () => {
         const allErrors = marketDataList.map(validate);
         setErrorsList(allErrors);
         if (allErrors.some(err => Object.keys(err).length > 0)) {
+            setSuccess(false);
             alert('Please fix validation errors before submitting.');
             return;
         }
         try {
             await postMarketData(marketDataList); // send all cards as array
-            alert('Market data submitted successfully!');
+            setSuccess(true);
         } catch (error) {
+            setSuccess(false);
             console.error('Error submitting market data:', error);
             alert('Failed to submit market data.');
         }
@@ -137,6 +155,41 @@ const MarketDataForm: React.FC = () => {
             }}>
                 Instrument Code Synchronization Form
             </h2>
+            {showSuccess && (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: '#e8f5e9',
+                    color: '#388e3c',
+                    border: '1px solid #c8e6c9',
+                    borderRadius: 8,
+                    padding: '12px 20px',
+                    margin: '0 auto 24px auto',
+                    maxWidth: 500,
+                    fontWeight: 500,
+                    fontSize: 18,
+                    boxShadow: '0 2px 8px #e3e3e3',
+                    gap: 12,
+                    opacity: successFade ? 1 : 0,
+                    transition: 'opacity 0.5s',
+                }}>
+                    <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        background: '#4caf50',
+                        color: '#fff',
+                        fontSize: 22,
+                        marginRight: 8
+                    }}>
+                        ✓
+                    </span>
+                    Instrument codes are ready for synchronization
+                </div>
+            )}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start' }}>
                 {marketDataList.map((formData, idx) => (
                     <div key={idx} style={{
@@ -207,7 +260,26 @@ const MarketDataForm: React.FC = () => {
                     +
                 </button>
             </div>
-            <button type="submit">Submit</button>
+            <button type="submit" style={{
+                background: '#1976d2',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 4,
+                padding: '12px 32px',
+                fontWeight: 600,
+                fontSize: 18,
+                letterSpacing: 1,
+                margin: '24px auto 0 auto',
+                display: 'block',
+                boxShadow: '0 2px 8px #e3e3e3',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+            }}
+            onMouseOver={e => (e.currentTarget.style.background = '#125ea2')}
+            onMouseOut={e => (e.currentTarget.style.background = '#1976d2')}
+            >
+                Save Instrument Codes
+            </button>
         </form>
     );
 };
